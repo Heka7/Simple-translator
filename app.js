@@ -1,26 +1,28 @@
-// ===== LANGUAGES LIST (Top 20 by speakers, with flags & Arabic names) =====
+// ===== LANGUAGES LIST (Top 20 by speakers, with country codes for flags) =====
 const languages = [
-    {code:'en',  name:'الإنجليزية',   flag:'🇬🇧'},
-    {code:'zh-CN',name:'الصينية',     flag:'🇨🇳'},
-    {code:'hi',  name:'الهندية',      flag:'🇮🇳'},
-    {code:'es',  name:'الإسبانية',    flag:'🇪🇸'},
-    {code:'ar',  name:'العربية',      flag:'🇸🇦'},
-    {code:'fr',  name:'الفرنسية',     flag:'🇫🇷'},
-    {code:'bn',  name:'البنغالية',    flag:'🇧🇩'},
-    {code:'pt',  name:'البرتغالية',   flag:'🇧🇷'},
-    {code:'ru',  name:'الروسية',      flag:'🇷🇺'},
-    {code:'ja',  name:'اليابانية',    flag:'🇯🇵'},
-    {code:'de',  name:'الألمانية',    flag:'🇩🇪'},
-    {code:'ko',  name:'الكورية',      flag:'🇰🇷'},
-    {code:'tr',  name:'التركية',      flag:'🇹🇷'},
-    {code:'it',  name:'الإيطالية',    flag:'🇮🇹'},
-    {code:'vi',  name:'الفيتنامية',   flag:'🇻🇳'},
-    {code:'th',  name:'التايلاندية',  flag:'🇹🇭'},
-    {code:'id',  name:'الإندونيسية',  flag:'🇮🇩'},
-    {code:'nl',  name:'الهولندية',    flag:'🇳🇱'},
-    {code:'pl',  name:'البولندية',    flag:'🇵🇱'},
-    {code:'uk',  name:'الأوكرانية',   flag:'🇺🇦'},
+    {code:'en',  name:'الإنجليزية',   cc:'gb'},
+    {code:'zh-CN',name:'الصينية',     cc:'cn'},
+    {code:'hi',  name:'الهندية',      cc:'in'},
+    {code:'es',  name:'الإسبانية',    cc:'es'},
+    {code:'ar',  name:'العربية',      cc:'sa'},
+    {code:'fr',  name:'الفرنسية',     cc:'fr'},
+    {code:'bn',  name:'البنغالية',    cc:'bd'},
+    {code:'pt',  name:'البرتغالية',   cc:'br'},
+    {code:'ru',  name:'الروسية',      cc:'ru'},
+    {code:'ja',  name:'اليابانية',    cc:'jp'},
+    {code:'de',  name:'الألمانية',    cc:'de'},
+    {code:'ko',  name:'الكورية',      cc:'kr'},
+    {code:'tr',  name:'التركية',      cc:'tr'},
+    {code:'it',  name:'الإيطالية',    cc:'it'},
+    {code:'vi',  name:'الفيتنامية',   cc:'vn'},
+    {code:'th',  name:'التايلاندية',  cc:'th'},
+    {code:'id',  name:'الإندونيسية',  cc:'id'},
+    {code:'nl',  name:'الهولندية',    cc:'nl'},
+    {code:'pl',  name:'البولندية',    cc:'pl'},
+    {code:'uk',  name:'الأوكرانية',   cc:'ua'},
 ];
+
+const FLAG_URL = (cc) => `https://flagcdn.com/w40/${cc}.png`;
 
 // ===== GLOBALS =====
 let translateTimer = null;
@@ -29,7 +31,7 @@ let lastDetectedLang = null;
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-    populateLanguages();
+    buildCustomSelects();
     initTheme();
     initModeTabs();
     initSmartTranslation();
@@ -37,31 +39,72 @@ document.addEventListener('DOMContentLoaded', () => {
     initEncoding();
 });
 
-// ===== POPULATE LANGUAGE DROPDOWNS =====
-function populateLanguages() {
-    const s1 = document.getElementById('lang1');
-    const s2 = document.getElementById('lang2');
-    languages.forEach(l => {
-        s1.add(new Option(`${l.flag}  ${l.name}`, l.code));
-        s2.add(new Option(`${l.flag}  ${l.name}`, l.code));
+// ===== BUILD CUSTOM SELECT DROPDOWNS =====
+function buildCustomSelects() {
+    buildDropdown('lang1', 'lang1Btn', 'lang1Drop', 'lang1Wrapper', 'ar');
+    buildDropdown('lang2', 'lang2Btn', 'lang2Drop', 'lang2Wrapper', 'en');
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.custom-select').forEach(cs => {
+            if (!cs.contains(e.target)) cs.classList.remove('open');
+        });
     });
-    s1.value = 'ar';
-    s2.value = 'en';
+}
+
+function buildDropdown(hiddenId, btnId, dropId, wrapperId, defaultCode) {
+    const hidden = document.getElementById(hiddenId);
+    const btn = document.getElementById(btnId);
+    const drop = document.getElementById(dropId);
+    const wrapper = document.getElementById(wrapperId);
+
+    // Build options
+    languages.forEach(lang => {
+        const opt = document.createElement('div');
+        opt.className = 'select-option' + (lang.code === defaultCode ? ' active' : '');
+        opt.dataset.code = lang.code;
+        opt.innerHTML = `<img class="flag-img" src="${FLAG_URL(lang.cc)}" alt="${lang.name}"> ${lang.name}`;
+        opt.addEventListener('click', () => {
+            // Update hidden input
+            hidden.value = lang.code;
+            // Update button display
+            setButtonDisplay(btn, lang);
+            // Mark active
+            drop.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            // Close dropdown
+            wrapper.classList.remove('open');
+            // Retranslate
+            updateDirectionBar();
+            retranslate();
+        });
+        drop.appendChild(opt);
+    });
+
+    // Set initial display
+    const defaultLang = languages.find(l => l.code === defaultCode);
+    setButtonDisplay(btn, defaultLang);
+
+    // Toggle dropdown
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close other dropdowns
+        document.querySelectorAll('.custom-select').forEach(cs => {
+            if (cs !== wrapper) cs.classList.remove('open');
+        });
+        wrapper.classList.toggle('open');
+    });
+
     updateDirectionBar();
+}
 
-    s1.addEventListener('change', () => { updateDirectionBar(); retranslate(); });
-    s2.addEventListener('change', () => { updateDirectionBar(); retranslate(); });
-
-    document.getElementById('swapLangs').addEventListener('click', () => {
-        [s1.value, s2.value] = [s2.value, s1.value];
-        updateDirectionBar();
-        retranslate();
-    });
+function setButtonDisplay(btn, lang) {
+    btn.innerHTML = `<img class="flag-img" src="${FLAG_URL(lang.cc)}" alt="${lang.name}"> ${lang.name}`;
 }
 
 function getLangName(code) {
     const lang = languages.find(l => l.code === code) || languages.find(l => code && l.code.startsWith(code.split('-')[0]));
-    return lang ? `${lang.flag} ${lang.name}` : code;
+    return lang ? lang.name : code;
 }
 
 function updateDirectionBar(fromCode, toCode) {

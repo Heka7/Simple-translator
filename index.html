@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heka Translate</title>
+    <link rel="icon" type="image/png" href="translates.png">
     <meta name="description" content="Heka Translate - Professional multi-language translator with code conversion">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -16,11 +17,7 @@
     </button>
 
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1 class="logo">Heka<span class="dot">.</span></h1>
-            <p class="tagline">مترجم ذكي متعدد اللغات</p>
-        </header>
+
 
         <!-- Mode Tabs -->
         <div class="mode-tabs">
@@ -40,14 +37,19 @@
             <div class="lang-selector">
                 <div class="lang-pick">
                     <label>اللغة الأولى</label>
-                    <select id="lang1"></select>
+                    <div class="custom-select" id="lang1Wrapper">
+                        <button class="select-btn" id="lang1Btn"></button>
+                        <div class="select-dropdown" id="lang1Drop"></div>
+                    </div>
+                    <input type="hidden" id="lang1" value="ar">
                 </div>
-                <button class="swap-btn" id="swapLangs" title="تبديل اللغات">
-                    <i class="fas fa-arrow-right-arrow-left"></i>
-                </button>
                 <div class="lang-pick">
                     <label>اللغة الثانية</label>
-                    <select id="lang2"></select>
+                    <div class="custom-select" id="lang2Wrapper">
+                        <button class="select-btn" id="lang2Btn"></button>
+                        <div class="select-dropdown" id="lang2Drop"></div>
+                    </div>
+                    <input type="hidden" id="lang2" value="en">
                 </div>
             </div>
 
