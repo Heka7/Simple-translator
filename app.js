@@ -22,7 +22,10 @@ const languages = [
     {code:'uk',  name:'الأوكرانية',   cc:'ua'},
 ];
 
-const FLAG_URL = (cc) => `https://flagcdn.com/w40/${cc}.png`;
+// Flag image URL helper
+function flagUrl(cc) {
+    return `https://flagcdn.com/w40/${cc}.png`;
+}
 
 // ===== GLOBALS =====
 let translateTimer = null;
@@ -37,74 +40,83 @@ document.addEventListener('DOMContentLoaded', () => {
     initSmartTranslation();
     initCodeConvert();
     initEncoding();
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.custom-select').forEach(sel => {
+            if (!sel.contains(e.target)) sel.classList.remove('open');
+        });
+    });
 });
 
 // ===== BUILD CUSTOM SELECT DROPDOWNS =====
 function buildCustomSelects() {
-    buildDropdown('lang1', 'lang1Btn', 'lang1Drop', 'lang1Wrapper', 'ar');
-    buildDropdown('lang2', 'lang2Btn', 'lang2Drop', 'lang2Wrapper', 'en');
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (e) => {
-        document.querySelectorAll('.custom-select').forEach(cs => {
-            if (!cs.contains(e.target)) cs.classList.remove('open');
-        });
-    });
+    buildSelect('lang1', 'ar');
+    buildSelect('lang2', 'en');
+    updateDirectionBar();
 }
 
-function buildDropdown(hiddenId, btnId, dropId, wrapperId, defaultCode) {
-    const hidden = document.getElementById(hiddenId);
-    const btn = document.getElementById(btnId);
-    const drop = document.getElementById(dropId);
-    const wrapper = document.getElementById(wrapperId);
+function buildSelect(id, defaultCode) {
+    const wrapper = document.getElementById(id + '-wrapper');
+    const trigger = document.getElementById(id + '-trigger');
+    const optionsContainer = document.getElementById(id + '-options');
+    const hiddenInput = document.getElementById(id);
+    const flagImg = document.getElementById(id + '-flag');
+    const textSpan = document.getElementById(id + '-text');
+
+    // Set default
+    const defaultLang = languages.find(l => l.code === defaultCode);
+    flagImg.src = flagUrl(defaultLang.cc);
+    textSpan.textContent = defaultLang.name;
+    hiddenInput.value = defaultCode;
 
     // Build options
     languages.forEach(lang => {
         const opt = document.createElement('div');
-        opt.className = 'select-option' + (lang.code === defaultCode ? ' active' : '');
+        opt.className = 'select-option' + (lang.code === defaultCode ? ' selected' : '');
         opt.dataset.code = lang.code;
-        opt.innerHTML = `<img class="flag-img" src="${FLAG_URL(lang.cc)}" alt="${lang.name}"> ${lang.name}`;
+        opt.innerHTML = `<img src="${flagUrl(lang.cc)}" alt="${lang.name}"> ${lang.name}`;
+
         opt.addEventListener('click', () => {
-            // Update hidden input
-            hidden.value = lang.code;
-            // Update button display
-            setButtonDisplay(btn, lang);
-            // Mark active
-            drop.querySelectorAll('.select-option').forEach(o => o.classList.remove('active'));
-            opt.classList.add('active');
+            // Update trigger
+            flagImg.src = flagUrl(lang.cc);
+            textSpan.textContent = lang.name;
+            hiddenInput.value = lang.code;
+
+            // Update selected state
+            optionsContainer.querySelectorAll('.select-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+
             // Close dropdown
             wrapper.classList.remove('open');
-            // Retranslate
+
+            // Trigger change
             updateDirectionBar();
             retranslate();
         });
-        drop.appendChild(opt);
+
+        optionsContainer.appendChild(opt);
     });
 
-    // Set initial display
-    const defaultLang = languages.find(l => l.code === defaultCode);
-    setButtonDisplay(btn, defaultLang);
-
-    // Toggle dropdown
-    btn.addEventListener('click', (e) => {
+    // Toggle dropdown on click
+    trigger.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Close other dropdowns
-        document.querySelectorAll('.custom-select').forEach(cs => {
-            if (cs !== wrapper) cs.classList.remove('open');
+        // Close other selects
+        document.querySelectorAll('.custom-select').forEach(sel => {
+            if (sel !== wrapper) sel.classList.remove('open');
         });
         wrapper.classList.toggle('open');
     });
-
-    updateDirectionBar();
-}
-
-function setButtonDisplay(btn, lang) {
-    btn.innerHTML = `<img class="flag-img" src="${FLAG_URL(lang.cc)}" alt="${lang.name}"> ${lang.name}`;
 }
 
 function getLangName(code) {
     const lang = languages.find(l => l.code === code) || languages.find(l => code && l.code.startsWith(code.split('-')[0]));
     return lang ? lang.name : code;
+}
+
+function getLangFlag(code) {
+    const lang = languages.find(l => l.code === code) || languages.find(l => code && l.code.startsWith(code.split('-')[0]));
+    return lang ? flagUrl(lang.cc) : '';
 }
 
 function updateDirectionBar(fromCode, toCode) {
@@ -187,30 +199,22 @@ async function smartTranslate(text) {
     const lang2Code = document.getElementById('lang2').value;
     const dirBar = document.getElementById('directionBar');
 
-    // Step 1: Use auto-detect to find the source language
-    // We send sl=auto so Google detects what the user typed
     const detectUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang2Code}&dt=t&dt=qca&q=${encodeURIComponent(text)}`;
 
     try {
         const res = await fetch(detectUrl);
         const data = await res.json();
 
-        // data[2] = detected source language code
         const detectedLang = data[2];
         lastDetectedLang = detectedLang;
 
         let sl, tl, translated = '';
 
-        // Decide direction: if the detected language matches lang1 → translate to lang2
-        // If it matches lang2 → translate to lang1
-        // Otherwise → default: treat as lang1 → lang2
         if (detectedLang === lang2Code || isCloseMatch(detectedLang, lang2Code)) {
-            // User typed in language 2, translate to language 1
             sl = lang2Code;
             tl = lang1Code;
             dirBar.classList.add('flipped');
 
-            // Need to re-fetch with correct target
             const url2 = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&dt=qca&q=${encodeURIComponent(text)}`;
             const res2 = await fetch(url2);
             const data2 = await res2.json();
@@ -218,18 +222,14 @@ async function smartTranslate(text) {
             if (data2[0]) data2[0].forEach(chunk => { if (chunk[0]) translated += chunk[0]; });
             handleSuggestion(data2, text);
         } else {
-            // User typed in language 1 (or unknown → default to lang1→lang2)
             sl = lang1Code;
             tl = lang2Code;
             dirBar.classList.remove('flipped');
 
-            // Use the already fetched data if sl matches, otherwise re-fetch
             if (detectedLang === lang1Code || isCloseMatch(detectedLang, lang1Code)) {
                 if (data[0]) data[0].forEach(chunk => { if (chunk[0]) translated += chunk[0]; });
                 handleSuggestion(data, text);
             } else {
-                // Detected something else, but since user picked these two languages,
-                // assume lang1 → lang2 direction
                 const url3 = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&dt=qca&q=${encodeURIComponent(text)}`;
                 const res3 = await fetch(url3);
                 const data3 = await res3.json();
@@ -238,7 +238,6 @@ async function smartTranslate(text) {
             }
         }
 
-        // Update UI
         document.getElementById('transOutput').textContent = translated;
         updateDirectionBar(sl, tl);
         document.getElementById('outputLabel').innerHTML = `<i class="fas fa-language"></i> ${getLangName(tl)}`;
@@ -250,16 +249,13 @@ async function smartTranslate(text) {
     }
 }
 
-// Handle close matches like zh-CN vs zh, etc.
 function isCloseMatch(detected, selected) {
     if (!detected || !selected) return false;
     return detected.startsWith(selected.split('-')[0]) || selected.startsWith(detected.split('-')[0]);
 }
 
-// Handle "Did you mean" suggestions
 function handleSuggestion(data, originalText) {
     const suggestEl = document.getElementById('suggestion');
-    // data[7][1] contains the suggestion if available
     if (data[7] && data[7][1]) {
         const suggestion = data[7][1];
         suggestEl.innerHTML = `<span class="sugg-label">هل تقصد: </span><u>${suggestion}</u>`;
@@ -423,7 +419,6 @@ function speakInput() {
 function speakOutput() {
     const text = document.getElementById('transOutput').textContent;
     if (!text || text === 'الترجمة هتظهر هنا تلقائي...') return;
-    // Determine target language (opposite of detected)
     const lang1 = document.getElementById('lang1').value;
     const lang2 = document.getElementById('lang2').value;
     const targetLang = (lastDetectedLang === lang2 || isCloseMatch(lastDetectedLang, lang2)) ? lang1 : lang2;

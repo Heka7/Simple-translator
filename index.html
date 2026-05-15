@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heka Translate</title>
-    <link rel="icon" type="image/png" href="translates.png">
     <meta name="description" content="Heka Translate - Professional multi-language translator with code conversion">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -37,19 +36,27 @@
             <div class="lang-selector">
                 <div class="lang-pick">
                     <label>اللغة الأولى</label>
-                    <div class="custom-select" id="lang1Wrapper">
-                        <button class="select-btn" id="lang1Btn"></button>
-                        <div class="select-dropdown" id="lang1Drop"></div>
+                    <div class="custom-select" id="lang1-wrapper">
+                        <div class="select-trigger" id="lang1-trigger">
+                            <img class="flag-img" id="lang1-flag" src="" alt="">
+                            <span id="lang1-text">العربية</span>
+                            <i class="fas fa-chevron-down select-arrow"></i>
+                        </div>
+                        <div class="select-options" id="lang1-options"></div>
+                        <input type="hidden" id="lang1" value="ar">
                     </div>
-                    <input type="hidden" id="lang1" value="ar">
                 </div>
                 <div class="lang-pick">
                     <label>اللغة الثانية</label>
-                    <div class="custom-select" id="lang2Wrapper">
-                        <button class="select-btn" id="lang2Btn"></button>
-                        <div class="select-dropdown" id="lang2Drop"></div>
+                    <div class="custom-select" id="lang2-wrapper">
+                        <div class="select-trigger" id="lang2-trigger">
+                            <img class="flag-img" id="lang2-flag" src="" alt="">
+                            <span id="lang2-text">الإنجليزية</span>
+                            <i class="fas fa-chevron-down select-arrow"></i>
+                        </div>
+                        <div class="select-options" id="lang2-options"></div>
+                        <input type="hidden" id="lang2" value="en">
                     </div>
-                    <input type="hidden" id="lang2" value="en">
                 </div>
             </div>
 
