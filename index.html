@@ -1,32 +1,138 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heka Translator</title>
+    <title>Heka Translate</title>
     <style>
-        /* ستايل بسيط وشيك زي جوجل */
-        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f8f9fa; }
-        .container { width: 90%; max-width: 600px; text-align: center; }
-        h1 { color: #4285f4; font-size: 48px; margin-bottom: 30px; }
-        textarea { width: 100%; height: 150px; padding: 15px; border: 1px solid #dfe1e5; border-radius: 24px; font-size: 18px; box-shadow: 0 1px 6px rgba(32,33,36,.28); outline: none; resize: none; text-align: center; }
-        .result { margin-top: 20px; padding: 20px; min-height: 50px; background: white; border-radius: 24px; box-shadow: 0 1px 6px rgba(32,33,36,.1); font-size: 20px; color: #3c4043; width: 100%; box-sizing: border-box; }
-        .status { margin-top: 10px; font-size: 12px; color: #70757a; }
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #4285f4;
+            --text-color: #e0e0e0;
+            --border-color: #333;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            font-weight: 300;
+            color: #fff;
+        }
+
+        h1 span { color: #ff4b2b; } /* نقطة الـ i أو حرف الـ H المميز */
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .input-box:focus-within {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(66, 133, 244, 0.3);
+        }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            resize: none;
+            outline: none;
+            height: 120px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 20px 0;
+        }
+
+        .result-box {
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #bbb;
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #666;
+            padding: 0 10px;
+        }
+
+        .github-link {
+            margin-top: 30px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+
+        .github-link:hover { opacity: 1; text-decoration: underline; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Heka</h1>
-        <textarea id="inputText" placeholder="اكتب هنا (انجليزي أو عربي)..."></textarea>
-        <div class="result" id="outputText">الترجمة هتظهر هنا...</div>
-        <div class="status" id="status">الوضع: تلقائي</div>
+        <h1>Heka<span>.</span></h1>
+        
+        <div class="glass-panel input-box">
+            <textarea id="inputText" placeholder="اكتب هنا (انجليزي أو عربي)..."></textarea>
+        </div>
+
+        <div class="glass-panel result-box" id="outputText">
+            الترجمة هتظهر هنا فوراً...
+        </div>
+
+        <div class="footer-info">
+            <span id="status">الوضع: تلقائي</span>
+            <span id="state">جاهز</span>
+        </div>
+
+        <a href="https://github.com" target="_blank" class="github-link">رفعها ع GitHub</a>
     </div>
 
     <script>
         const inputText = document.getElementById('inputText');
         const outputText = document.getElementById('outputText');
         const status = document.getElementById('status');
+        const state = document.getElementById('state');
 
         let timeout = null;
 
@@ -35,23 +141,25 @@
             const text = inputText.value.trim();
 
             if (!text) {
-                outputText.innerText = "الترجمة هتظهر هنا...";
+                outputText.innerText = "الترجمة هتظهر هنا فوراً...";
+                state.innerText = "جاهز";
                 return;
             }
 
-            // استنى 500ms بعد الكتابة عشان ميبعتش طلبات كتير ورا بعض (Debouncing)
+            state.innerText = "جاري الترجمة...";
+
             timeout = setTimeout(() => {
                 translate(text);
             }, 500);
         });
 
         async function translate(text) {
-            // كود بسيط لمعرفة لو الكلام عربي ولا انجليزي
+            // كود كشف اللغة: لو في حروف عربي يبقى عربي
             const isArabic = /[\u0600-\u06FF]/.test(text);
             const sl = isArabic ? 'ar' : 'en';
             const tl = isArabic ? 'en' : 'ar';
             
-            status.innerText = `يتم الترجمة من ${sl === 'ar' ? 'العربية' : 'الإنجليزية'}...`;
+            status.innerText = `من: ${isArabic ? 'العربية' : 'الإنجليزية'}`;
 
             const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
 
@@ -59,10 +167,10 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 outputText.innerText = data[0][0][0];
-                status.innerText = "جاهز";
+                state.innerText = "تمت الترجمة";
             } catch (error) {
-                outputText.innerText = "حصل مشكلة في الاتصال..";
-                console.error(error);
+                outputText.innerText = "مشكلة في الاتصال بالنت..";
+                state.innerText = "خطأ";
             }
         }
     </script>
