@@ -4,175 +4,198 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heka Translate</title>
-    <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent-color: #4285f4;
-            --text-color: #e0e0e0;
-            --border-color: #333;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 800px;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 40px;
-            letter-spacing: 2px;
-            font-weight: 300;
-            color: #fff;
-        }
-
-        h1 span { color: #ff4b2b; } /* نقطة الـ i أو حرف الـ H المميز */
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-            margin-bottom: 20px;
-            transition: 0.3s;
-        }
-
-        .input-box:focus-within {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 15px rgba(66, 133, 244, 0.3);
-        }
-
-        textarea {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 1.2rem;
-            resize: none;
-            outline: none;
-            height: 120px;
-            text-align: center;
-            box-sizing: border-box;
-        }
-
-        .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
-            margin: 20px 0;
-        }
-
-        .result-box {
-            min-height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            color: #bbb;
-        }
-
-        .footer-info {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: #666;
-            padding: 0 10px;
-        }
-
-        .github-link {
-            margin-top: 30px;
-            color: var(--accent-color);
-            text-decoration: none;
-            font-size: 0.9rem;
-            opacity: 0.7;
-            transition: 0.3s;
-        }
-
-        .github-link:hover { opacity: 1; text-decoration: underline; }
-    </style>
+    <meta name="description" content="Heka Translate - Professional multi-language translator with code conversion">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Theme Toggle -->
+    <button id="themeToggle" class="theme-toggle" title="تبديل الوضع">
+        <i class="fas fa-moon"></i>
+    </button>
 
     <div class="container">
-        <h1>Heka<span>.</span></h1>
-        
-        <div class="glass-panel input-box">
-            <textarea id="inputText" placeholder="اكتب هنا (انجليزي أو عربي)..."></textarea>
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">Heka<span class="dot">.</span></h1>
+            <p class="tagline">مترجم ذكي متعدد اللغات</p>
+        </header>
+
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="translate" id="tab-translate">
+                <i class="fas fa-language"></i> ترجمة
+            </button>
+            <button class="mode-tab" data-mode="code" id="tab-code">
+                <i class="fas fa-code"></i> تحويل أكواد
+            </button>
+            <button class="mode-tab" data-mode="encode" id="tab-encode">
+                <i class="fas fa-hashtag"></i> تشفير / فك تشفير
+            </button>
         </div>
 
-        <div class="glass-panel result-box" id="outputText">
-            الترجمة هتظهر هنا فوراً...
+        <!-- ===== TRANSLATE MODE ===== -->
+        <div class="mode-content active" id="mode-translate">
+            <div class="lang-selector">
+                <div class="lang-pick">
+                    <label>اللغة الأولى</label>
+                    <select id="lang1"></select>
+                </div>
+                <button class="swap-btn" id="swapLangs" title="تبديل اللغات">
+                    <i class="fas fa-arrow-right-arrow-left"></i>
+                </button>
+                <div class="lang-pick">
+                    <label>اللغة الثانية</label>
+                    <select id="lang2"></select>
+                </div>
+            </div>
+
+            <!-- Direction indicator -->
+            <div class="direction-indicator" id="directionBar">
+                <span id="dirFrom" class="dir-lang">اللغة 1</span>
+                <i class="fas fa-arrow-left dir-arrow"></i>
+                <span id="dirTo" class="dir-lang">اللغة 2</span>
+            </div>
+
+            <div class="translate-panels">
+                <div class="panel glass">
+                    <div class="panel-header">
+                        <span class="panel-label"><i class="fas fa-keyboard"></i> اكتب بأي لغة</span>
+                        <div class="panel-actions">
+                            <button class="icon-btn" onclick="copyText('transInput')" title="نسخ"><i class="fas fa-copy"></i></button>
+                            <button class="icon-btn" onclick="speakInput()" title="نطق"><i class="fas fa-volume-up"></i></button>
+                            <button class="icon-btn" onclick="clearAll()" title="مسح"><i class="fas fa-xmark"></i></button>
+                        </div>
+                    </div>
+                    <textarea id="transInput" placeholder="اكتب بأي لغة من اللغتين المختارتين..."></textarea>
+                    <div class="char-count"><span id="charCount">0</span> حرف</div>
+                    <div class="suggestion" id="suggestion"></div>
+                </div>
+
+                <div class="panel glass">
+                    <div class="panel-header">
+                        <span class="panel-label" id="outputLabel"><i class="fas fa-language"></i> الترجمة</span>
+                        <div class="panel-actions">
+                            <button class="icon-btn" onclick="copyText('transOutput')" title="نسخ"><i class="fas fa-copy"></i></button>
+                            <button class="icon-btn" onclick="speakOutput()" title="نطق"><i class="fas fa-volume-up"></i></button>
+                        </div>
+                    </div>
+                    <div class="output-area" id="transOutput">الترجمة هتظهر هنا تلقائي...</div>
+                </div>
+            </div>
+            <div class="status-bar">
+                <span id="transStatus">جاهز — اكتب بأي لغة وهيكتشفها تلقائي</span>
+            </div>
         </div>
 
-        <div class="footer-info">
-            <span id="status">الوضع: تلقائي</span>
-            <span id="state">جاهز</span>
+        <!-- ===== CODE MODE ===== -->
+        <div class="mode-content" id="mode-code">
+            <div class="lang-selector">
+                <div class="lang-pick">
+                    <label>من لغة</label>
+                    <select id="codeLangFrom">
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="cpp">C++</option>
+                        <option value="c">C</option>
+                        <option value="java">Java</option>
+                        <option value="csharp">C#</option>
+                        <option value="rust">Rust</option>
+                        <option value="go">Go</option>
+                        <option value="swift">Swift</option>
+                        <option value="kotlin">Kotlin</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="php">PHP</option>
+                        <option value="ruby">Ruby</option>
+                        <option value="assembly">Assembly (x86)</option>
+                        <option value="lua">Lua</option>
+                        <option value="dart">Dart</option>
+                        <option value="r">R</option>
+                        <option value="sql">SQL</option>
+                    </select>
+                </div>
+                <button class="swap-btn" id="swapCode" title="تبديل"><i class="fas fa-arrow-right-arrow-left"></i></button>
+                <div class="lang-pick">
+                    <label>إلى لغة</label>
+                    <select id="codeLangTo">
+                        <option value="cpp">C++</option>
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="c">C</option>
+                        <option value="java">Java</option>
+                        <option value="csharp">C#</option>
+                        <option value="rust">Rust</option>
+                        <option value="go">Go</option>
+                        <option value="swift">Swift</option>
+                        <option value="kotlin">Kotlin</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="php">PHP</option>
+                        <option value="ruby">Ruby</option>
+                        <option value="assembly">Assembly (x86)</option>
+                        <option value="lua">Lua</option>
+                        <option value="dart">Dart</option>
+                        <option value="r">R</option>
+                        <option value="sql">SQL</option>
+                    </select>
+                </div>
+            </div>
+            <div class="translate-panels">
+                <div class="panel glass code-panel">
+                    <div class="panel-header">
+                        <span class="panel-label"><i class="fas fa-file-code"></i> الكود المصدري</span>
+                        <button class="icon-btn" onclick="copyText('codeInput')" title="نسخ"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <textarea id="codeInput" class="code-area" placeholder="اكتب الكود هنا..." dir="ltr"></textarea>
+                </div>
+                <div class="panel glass code-panel">
+                    <div class="panel-header">
+                        <span class="panel-label"><i class="fas fa-file-code"></i> الكود المحول</span>
+                        <button class="icon-btn" onclick="copyText('codeOutput')" title="نسخ"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <textarea id="codeOutput" class="code-area" readonly placeholder="النتيجة ستظهر هنا..." dir="ltr"></textarea>
+                </div>
+            </div>
+            <button class="convert-btn" id="convertCodeBtn"><i class="fas fa-wand-magic-sparkles"></i> تحويل الكود</button>
+            <p class="hint">⚡ يستخدم Google Gemini API للتحويل الذكي بين اللغات</p>
         </div>
 
-        <a href="https://github.com" target="_blank" class="github-link">رفعها ع GitHub</a>
+        <!-- ===== ENCODE MODE ===== -->
+        <div class="mode-content" id="mode-encode">
+            <div class="encode-type-selector">
+                <button class="encode-tab active" data-enc="ascii">ASCII</button>
+                <button class="encode-tab" data-enc="binary">Binary</button>
+                <button class="encode-tab" data-enc="octal">Octal</button>
+                <button class="encode-tab" data-enc="hex">Hex</button>
+                <button class="encode-tab" data-enc="base64">Base64</button>
+                <button class="encode-tab" data-enc="url">URL</button>
+            </div>
+            <div class="translate-panels">
+                <div class="panel glass">
+                    <div class="panel-header">
+                        <span class="panel-label">النص</span>
+                        <button class="icon-btn" onclick="copyText('encodeInput')" title="نسخ"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <textarea id="encodeInput" placeholder="اكتب النص هنا..." dir="ltr"></textarea>
+                </div>
+                <div class="panel glass">
+                    <div class="panel-header">
+                        <span class="panel-label" id="encodeLabel">ASCII</span>
+                        <button class="icon-btn" onclick="copyText('encodeOutput')" title="نسخ"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <textarea id="encodeOutput" placeholder="النتيجة..." dir="ltr"></textarea>
+                </div>
+            </div>
+            <p class="hint">✏️ اكتب في أي حقل وسيتحول تلقائياً في الحقل الآخر</p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>صنع بـ ❤️ بواسطة <strong>Heka</strong></span>
+            <a href="https://github.com/Heka7" target="_blank" class="github-link"><i class="fab fa-github"></i> GitHub</a>
+        </footer>
     </div>
 
-    <script>
-        const inputText = document.getElementById('inputText');
-        const outputText = document.getElementById('outputText');
-        const status = document.getElementById('status');
-        const state = document.getElementById('state');
-
-        let timeout = null;
-
-        inputText.addEventListener('input', () => {
-            clearTimeout(timeout);
-            const text = inputText.value.trim();
-
-            if (!text) {
-                outputText.innerText = "الترجمة هتظهر هنا فوراً...";
-                state.innerText = "جاهز";
-                return;
-            }
-
-            state.innerText = "جاري الترجمة...";
-
-            timeout = setTimeout(() => {
-                translate(text);
-            }, 500);
-        });
-
-        async function translate(text) {
-            // كود كشف اللغة: لو في حروف عربي يبقى عربي
-            const isArabic = /[\u0600-\u06FF]/.test(text);
-            const sl = isArabic ? 'ar' : 'en';
-            const tl = isArabic ? 'en' : 'ar';
-            
-            status.innerText = `من: ${isArabic ? 'العربية' : 'الإنجليزية'}`;
-
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
-
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                outputText.innerText = data[0][0][0];
-                state.innerText = "تمت الترجمة";
-            } catch (error) {
-                outputText.innerText = "مشكلة في الاتصال بالنت..";
-                state.innerText = "خطأ";
-            }
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
