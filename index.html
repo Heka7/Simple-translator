@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heka Translator</title>
+    <style>
+        /* ستايل بسيط وشيك زي جوجل */
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f8f9fa; }
+        .container { width: 90%; max-width: 600px; text-align: center; }
+        h1 { color: #4285f4; font-size: 48px; margin-bottom: 30px; }
+        textarea { width: 100%; height: 150px; padding: 15px; border: 1px solid #dfe1e5; border-radius: 24px; font-size: 18px; box-shadow: 0 1px 6px rgba(32,33,36,.28); outline: none; resize: none; text-align: center; }
+        .result { margin-top: 20px; padding: 20px; min-height: 50px; background: white; border-radius: 24px; box-shadow: 0 1px 6px rgba(32,33,36,.1); font-size: 20px; color: #3c4043; width: 100%; box-sizing: border-box; }
+        .status { margin-top: 10px; font-size: 12px; color: #70757a; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Heka</h1>
+        <textarea id="inputText" placeholder="اكتب هنا (انجليزي أو عربي)..."></textarea>
+        <div class="result" id="outputText">الترجمة هتظهر هنا...</div>
+        <div class="status" id="status">الوضع: تلقائي</div>
+    </div>
+
+    <script>
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const status = document.getElementById('status');
+
+        let timeout = null;
+
+        inputText.addEventListener('input', () => {
+            clearTimeout(timeout);
+            const text = inputText.value.trim();
+
+            if (!text) {
+                outputText.innerText = "الترجمة هتظهر هنا...";
+                return;
+            }
+
+            // استنى 500ms بعد الكتابة عشان ميبعتش طلبات كتير ورا بعض (Debouncing)
+            timeout = setTimeout(() => {
+                translate(text);
+            }, 500);
+        });
+
+        async function translate(text) {
+            // كود بسيط لمعرفة لو الكلام عربي ولا انجليزي
+            const isArabic = /[\u0600-\u06FF]/.test(text);
+            const sl = isArabic ? 'ar' : 'en';
+            const tl = isArabic ? 'en' : 'ar';
+            
+            status.innerText = `يتم الترجمة من ${sl === 'ar' ? 'العربية' : 'الإنجليزية'}...`;
+
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                outputText.innerText = data[0][0][0];
+                status.innerText = "جاهز";
+            } catch (error) {
+                outputText.innerText = "حصل مشكلة في الاتصال..";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
